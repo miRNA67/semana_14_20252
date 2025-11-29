@@ -111,7 +111,7 @@ cd quality
 
 conda activate metataxonomic
 
-NanoPlot -t 15 --fastq /data/2025_1/sequencing/shotgun/fastq/b01.fastq -p b01_raw --only-report --maxlength 1000000 -o .
+NanoPlot -t 15 --fastq /data/2025_2/metagenomics/shotgun/fastq/final/b10.fastq.gz -p b10_raw --only-report --maxlength 1000000 -o .
 ```
 
 ## 3. Limpieza de los archivos FASTQ 
@@ -123,13 +123,13 @@ mkdir trim
 
 cd trim
 
-porechop -t 15 -i /data/2025_1/sequencing/shotgun/fastq/b01.fastq -o b01_porechop.fastq.gz
+porechop -t 15 -i /data/2025_2/metagenomics/shotgun/fastq/final/b10.fastq.gz -o b10_porechop.fastq.gz
 
-gunzip -c b01_porechop.fastq.gz | NanoFilt -q 10 --length 1000 | gzip > b01_nanofilt.fastq.gz
+gunzip -c b10_porechop.fastq.gz | NanoFilt -q 10 --length 1000 | gzip > b10_nanofilt.fastq.gz
 
 conda activate shotgun
 
-seqkit stats -a -j 15 *.fastq.gz > b01_trim_stats.txt
+seqkit stats -a -j 15 *.fastq.gz > b10_trim_stats.txt
 ```
 
 ## 4. Eliminación de la contaminación en los archivos FASTQ 
@@ -141,11 +141,11 @@ mkdir contamination
 
 cd contamination
 
-minimap2 -ax map-ont /data/2025_1/database/reference/manihot.mmi ~/shotgun/trim/b01_nanofilt.fastq.gz | samtools fastq -n -f 4 - > b01_clean_mes.fastq
+minimap2 -ax map-ont /data/2025_1/database/reference/manihot.mmi ~/shotgun/trim/b10_nanofilt.fastq.gz | samtools fastq -n -f 4 - > b10_clean_mes.fastq
 
-minimap2 -ax map-ont /data/BL16/nanopore/shotgun_24_1/homo/homo_index.mmi b01_clean_mes.fastq | samtools fastq -n -f 4 - > b01_clean_hsa.fastq
+minimap2 -ax map-ont /data/BL16/nanopore/shotgun_24_1/homo/homo_index.mmi b10_clean_mes.fastq | samtools fastq -n -f 4 - > b10_clean_hsa.fastq
 
-seqkit stats -a -j 15 *.fastq > b01_contamination_stats.txt
+seqkit stats -a -j 15 *.fastq > b10_contamination_stats.txt
 ```
 
 ## 5. Identificación del perfil taxonómico a partir de los archivos FASTQ
@@ -157,11 +157,11 @@ mkdir taxonomy
 
 cd taxonomy
 
-kraken2 -db /data/db/kraken2/k2_pluspf --threads 15 --use-names cd ~/shotgun/contamination/b01_clean_hsa.fastq --output b01.kraken --report b21.report
+kraken2 -db /data/db/kraken2/k2_pluspf --threads 10 --use-names cd ~/shotgun/contamination/b10_clean_hsa.fastq --output b10.kraken --report b10.report
 
-kreport2krona.py -r b01.report -o b01.krona
+kreport2krona.py -r b10.report -o b10.krona
 
-ktImportText b01.krona -o b01_krona_report.html
+ktImportText b10.krona -o b10_krona_report.html
 ```
 
 ```bash
@@ -187,11 +187,11 @@ mkdir assembly
 
 cd assembly
 
-flye --nano-hq ~/shotgun/contamination/b01_clean_hsa.fastq --meta --threads 15 --out-dir b01
+flye --nano-hq ~/shotgun/contamination/b10_clean_hsa.fastq --meta --threads 10 --out-dir b10
 
-mv b01/assembly.fasta b01_assembly.fasta
+mv b10/assembly.fasta b10_assembly.fasta
 
-metaquast.py -m 1000 --gene-finding -r /data/BL16/nanopore/shotgun_24_1/sacha/GCA_000146045.2_R64_genomic.fna -o b01_assemble_stats b01_assembly.fasta
+metaquast.py -m 1000 --gene-finding -r /data/BL16/nanopore/shotgun_24_1/sacha/GCA_000146045.2_R64_genomic.fna -o b10_assemble_stats b10_assembly.fasta
 ```
 
 ## 7. Binning (Agrupación y evaluación de MAGs)
@@ -203,17 +203,17 @@ mkdir binning
 
 cd binning
 
-minimap2 -t 15 -ax map-ont ~/shotgun/assembly/b01_assembly.fasta ~/shotgun/contamination/b01_clean_hsa.fastq | samtools sort -O BAM - > b01.aln.sort.bam
+minimap2 -t 15 -ax map-ont ~/shotgun/assembly/b10_assembly.fasta ~/shotgun/contamination/b10_clean_hsa.fastq | samtools sort -O BAM - > b10.aln.sort.bam
 
-samtools index -@ -b b24.aln.sort.bam
+samtools index -@ -b b10.aln.sort.bam
 
-jgi_summarize_bam_contig_depths --outputDepth b01_depth.txt b01.aln.sort.bam
+jgi_summarize_bam_contig_depths --outputDepth b10_depth.txt b10.aln.sort.bam
 
-metabat2 -m 1500 -t 15 -i ~/shotgun/assembly/b01_assembly.fasta -a b01_depth.txt -o b01
+metabat2 -m 1500 -t 15 -i ~/shotgun/assembly/b10_assembly.fasta -a b10_depth.txt -o b10
 
 conda activate checkm
 
-checkm lineage_wf -t 15 -x fa . --tab_table -f b01_checkm_out.txt .
+checkm lineage_wf -t 10 -x fa . --tab_table -f b10_checkm_out.txt .
 ```
 
 ## 8. Anotación funcional global de los contigs
@@ -227,15 +227,15 @@ cd annotation
 
 conda activate pgcgap
 
-prokka --outdir prokka --cpus 15 --metagenome --prefix b01 ~/shotgun/assembly/b01_assembly.fasta
+prokka --outdir prokka --cpus 15 --metagenome --prefix b10 ~/shotgun/assembly/b10_assembly.fasta
 ```
 
 ### Identificar los códigos y descripción de las rutas metabólicas presentes en los contigs con el programa minpath:
 
 ```bash
-egrep "eC_number=" prokka/b01.gff |cut -f9 | cut -f1,2 -d ';'| sed 's/ID=//g'| sed 's/;eC_number=/\t/g' > b01_ec.txt
+egrep "eC_number=" prokka/b10.gff |cut -f9 | cut -f1,2 -d ';'| sed 's/ID=//g'| sed 's/;eC_number=/\t/g' > b10_ec.txt
 
-python /data/db/minpath/MinPath.py -any b01_ec.txt -map /data/db/minpath/data/ec2path -report b01_ec.report
+python /data/db/minpath/MinPath.py -any b10_ec.txt -map /data/db/minpath/data/ec2path -report b10_ec.report
 ```
 
 ### Visualizar las rutas metabólicas más relevantes en MetaCyc (https://metacyc.org/):
@@ -257,7 +257,7 @@ cd abricate
 
 conda activate abricate
 
-abricate --db vfdb ~/shotgun/annotation/prokka/b01.fna > b01_vfdb.tab
+abricate --db vfdb ~/shotgun/annotation/prokka/b10.fna > b10_vfdb.tab
 ```
 
 ```bash
@@ -271,7 +271,7 @@ conda activate resistance
 
 rgi load --card_json /data/db/card/card.json  --local
 
-rgi main --input_sequence ~/shotgun/annotation/prokka/b01.fna --output_file b01_rgi --clean --local --num_threads 15
+rgi main --input_sequence ~/shotgun/annotation/prokka/b10.fna --output_file b10_rgi --clean --local --num_threads 10
 ```
 
 ## 10. Identificación de plásmidos en los contigs
@@ -285,7 +285,7 @@ mkdir plasmid
 
 cd plasmid
 
-mob_recon --infile ~/shotgun/annotation/prokka/b01.fna --outdir b01_plasmid
+mob_recon --infile ~/shotgun/annotation/prokka/b10.fna --outdir b10_plasmid
 ```
 
 ## 11. Identificación de rutas metabólicas en los contigs
@@ -347,11 +347,6 @@ mob_recon --infile ~/shotgun/annotation/prokka/b01.fna --outdir b01_plasmid
 •	Clústeres de metabólitos identificados
 ```
 
-## Para el trabajo final
-
-```bash
-•	Análisis de la anotación de los 3 MAGs con mejor calidad
-```
 
 
 
