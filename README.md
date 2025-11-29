@@ -141,9 +141,9 @@ mkdir contamination
 
 cd contamination
 
-minimap2 -ax map-ont /data/2025_1/database/reference/manihot.mmi ~/shotgun/trim/b10_nanofilt.fastq.gz | samtools fastq -n -f 4 - > b10_clean_mes.fastq
+minimap2 -ax map-ont /data/2025_2/metagenomics/shotgun/reference/vaccinium_floribundum.mmi ~/shotgun/trim/b10_nanofilt.fastq.gz | samtools fastq -n -f 4 - > b10_clean_vfl.fastq
 
-minimap2 -ax map-ont /data/BL16/nanopore/shotgun_24_1/homo/homo_index.mmi b10_clean_mes.fastq | samtools fastq -n -f 4 - > b10_clean_hsa.fastq
+minimap2 -ax map-ont /data/BL16/nanopore/shotgun_24_1/homo/homo_index.mmi b10_clean_vfl.fastq | samtools fastq -n -f 4 - > b10_clean_hsa.fastq
 
 seqkit stats -a -j 15 *.fastq > b10_contamination_stats.txt
 ```
@@ -191,7 +191,7 @@ flye --nano-hq ~/shotgun/contamination/b10_clean_hsa.fastq --meta --threads 10 -
 
 mv b10/assembly.fasta b10_assembly.fasta
 
-metaquast.py -m 1000 --gene-finding -r /data/BL16/nanopore/shotgun_24_1/sacha/GCA_000146045.2_R64_genomic.fna -o b10_assemble_stats b10_assembly.fasta
+metaquast.py -m 1000 --gene-finding -r /data/2025_2/metagenomics/shotgun/reference/metaquast/ -o b10_assemble_stats b10_assembly.fasta
 ```
 
 ## 7. Binning (Agrupación y evaluación de MAGs)
@@ -332,6 +332,18 @@ mob_recon --infile ~/shotgun/annotation/prokka/b10.fna --outdir b10_plasmid
 
 # Bitácora de la práctica:
 
+## Titulo
+
+```bash
+•	Incluir el nombre de todos los integrantes
+```
+
+## Objetivos
+
+```bash
+•	Indicar cual es el objetivo del análisis shotgun considerando la muestra analizada.
+```
+
 ## Resultados
 
 ```bash
@@ -346,6 +358,19 @@ mob_recon --infile ~/shotgun/annotation/prokka/b10.fna --outdir b10_plasmid
 •	Plásmidos identificados
 •	Clústeres de metabólitos identificados
 ```
+
+## Discusión
+
+```bash
+•	En un parrafo describir lo observado en la anotación de los clústeres de metabólitos
+```
+
+## Recomendaciones
+
+```bash
+•	Incluir 2 recomendaciones relacionados al analisis shotgun.
+```
+
 
 
 
