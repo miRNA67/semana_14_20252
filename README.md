@@ -187,7 +187,9 @@ mkdir assembly
 
 cd assembly
 
-flye --nano-hq ~/shotgun/contamination/b10_clean_hsa.fastq --meta --threads 10 --out-dir b10
+awk '{if(NR%4==1) {print "@read_" (NR/4)} else {print}}' ~/shotgun/contamination/b10_clean_hsa.fastq > b10_final.fastq
+
+flye --nano-hq b10_final.fastq --meta --threads 10 --out-dir b10
 
 mv b10/assembly.fasta b10_assembly.fasta
 
