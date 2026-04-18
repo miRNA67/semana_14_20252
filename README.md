@@ -157,7 +157,7 @@ mkdir taxonomy
 
 cd taxonomy
 
-kraken2 -db /data/db/kraken2/k2_pluspf --threads 10 --use-names cd ~/shotgun/contamination/b10_clean_hsa.fastq --output b10.kraken --report b10.report
+kraken2 -db /data/db/kraken2/k2_pluspf --threads 10 --use-names ~/shotgun/contamination/b10_clean_hsa.fastq --output b10.kraken --report b10.report
 
 kreport2krona.py -r b10.report -o b10.krona
 
